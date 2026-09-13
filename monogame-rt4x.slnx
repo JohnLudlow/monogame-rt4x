@@ -1,4 +1,6 @@
 <Solution>
   <Project Path="FourxGame.ContentBuilder/FourxGame.ContentBuilder.csproj" />
   <Project Path="FourxGame.MonoGame/FourxGame.MonoGame.csproj" />
+  <Project Path="FourxGame.MonoGame.Core/FourxGame.MonoGame.Core.csproj" />
+  <Project Path="FourxGame.MonoGame.UnitTests/FourxGame.MonoGame.UnitTests.csproj" />
 </Solution>
