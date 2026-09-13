@@ -137,4 +137,3 @@ jobs:
         submodules: recursive
 
     - uses: ./actions/steps/pr-size
-
