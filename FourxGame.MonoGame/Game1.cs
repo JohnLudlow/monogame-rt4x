@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -10,7 +11,7 @@ public class Game1 : Game
   private readonly int _gridCellSize = 48;
   private readonly Point _gridSize = new() { X = 32, Y = 16 };
   private readonly Point _gridOrigin = new() { X = 0, Y = 0 };
-  private Point _hoveredCell = Point.Zero;
+  private Point? _hoveredCell = Point.Zero;
 
   private GraphicsDeviceManager _graphics;
   private SpriteBatch _spriteBatch;
@@ -44,21 +45,30 @@ public class Game1 : Game
     // TODO: use this.Content to load your game content here
   }
 
-  protected override void Update(GameTime gameTime)
-  {
-    if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-      Exit();
+protected override void Update(GameTime gameTime)
+{
+    var mouse = Mouse.GetState();
+    var localX = mouse.X - _gridOrigin.X;
+    var localY = mouse.Y - _gridOrigin.Y;
 
-    var mouseState = Mouse.GetState();
-    var hoveredCell = new Point(
-      (mouseState.X - _gridOrigin.X) / _gridCellSize,
-      (mouseState.Y - _gridOrigin.Y) / _gridCellSize
-    );
+    if (
+         (localX > _gridOrigin.X && localX < _gridOrigin.X + (_gridSize.X * _gridCellSize))
+      && (localY > _gridOrigin.Y && localY < _gridOrigin.Y + (_gridSize.Y * _gridCellSize))
+    )
+    {
+      _hoveredCell = new (localX / _gridCellSize, localY / _gridCellSize);
+    }
+    else
+    {
+      _hoveredCell = null;
+    }
 
-    // TODO: Add your update logic here
+    // bounds check, then compute:
+    // column = localX / CellSize
+    // row = localY / CellSize
 
     base.Update(gameTime);
-  }
+}
 
   protected override void Draw(GameTime gameTime)
   {
@@ -66,28 +76,22 @@ public class Game1 : Game
 
     _spriteBatch.Begin();
     {
-      for (var x = 0; x <= _gridSize.X; x++)
-      {
-        _spriteBatch.Draw(
-          _pixel,
-          new Rectangle(
-            new(_gridOrigin.X + (x * _gridCellSize), 0),
-            new(1, _gridSize.Y * _gridCellSize)
-          ),
-          Color.White
-        );
-      }
+      DrawGrid();
 
-      for (var y = 0; y <= _gridSize.Y; y++)
+      if (_hoveredCell is not null)
       {
-        _spriteBatch.Draw(
-          _pixel,
-          new Rectangle(
-            new(0, _gridOrigin.Y + (y * _gridCellSize)),
-            new(_gridSize.X * _gridCellSize, 1)
-          ),
-          Color.White
-        );
+        var cellTopLeft = _gridOrigin + (_hoveredCell * _gridCellSize);
+        if (cellTopLeft is not null)
+        {          
+          _spriteBatch.Draw(
+            _pixel,
+            new Rectangle(
+              cellTopLeft.Value, 
+              new (_gridCellSize)
+            ),
+            Color.Red
+          );
+        }
       }
     }
     _spriteBatch.End();
@@ -95,5 +99,32 @@ public class Game1 : Game
     // TODO: Add your drawing code here
 
     base.Draw(gameTime);
+  }
+
+  private void DrawGrid()
+  {
+    for (var x = 0; x <= _gridSize.X; x++)
+    {
+      _spriteBatch.Draw(
+        _pixel,
+        new Rectangle(
+          new(_gridOrigin.X + (x * _gridCellSize), 0),
+          new(1, _gridSize.Y * _gridCellSize)
+        ),
+        Color.White
+      );
+    }
+
+    for (var y = 0; y <= _gridSize.Y; y++)
+    {
+      _spriteBatch.Draw(
+        _pixel,
+        new Rectangle(
+          new(0, _gridOrigin.Y + (y * _gridCellSize)),
+          new(_gridSize.X * _gridCellSize, 1)
+        ),
+        Color.White
+      );
+    }
   }
 }

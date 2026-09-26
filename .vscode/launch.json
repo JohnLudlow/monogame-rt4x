@@ -8,7 +8,7 @@
         "name": "C#: FourxGame.MonoGame Debug",
         "type": "dotnet",
         "request": "launch",
-        "projectPath": "${workspaceFolder}/FourxGame.MonoGame.csproj"
+        "projectPath": "${workspaceFolder}/FourxGame.MonoGame/FourxGame.MonoGame.csproj"
       }
     ],
   }
