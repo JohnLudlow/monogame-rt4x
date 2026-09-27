@@ -1,5 +1,8 @@
 ﻿using System;
+using FourxGame.MonoGame.Core.Commands.Input;
 using FourxGame.MonoGame.Core.Entities;
+using FourxGame.MonoGame.Core.Systems.Input;
+using FourxGame.MonoGame.Core.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -11,7 +14,12 @@ public class Game1 : Game
   private Grid? _grid;
   private Camera? _camera;
   private Texture2D? _pixel;
+  private InputReader _inputReader = null!;
+  private CameraController _cameraController = null!;
+
   private Point? _hoveredCell = Point.Zero;
+  private float _panSpeed = 400f;
+  private int _previousScroll;
 
   private GraphicsDeviceManager _graphics;
   private SpriteBatch? _spriteBatch;
@@ -40,6 +48,9 @@ public class Game1 : Game
     };
 
     _camera = new Camera();
+    _inputReader = new InputReader(new InputBindings());
+    _cameraController = new CameraController(_camera);
+
     base.Initialize();
   }
 
@@ -53,25 +64,34 @@ public class Game1 : Game
 
 protected override void Update(GameTime gameTime)
 {
+  ArgumentNullException.ThrowIfNull(gameTime);
   if (_camera is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_camera)} is null");
   if (_grid is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_grid)} is null");
 
-  var mouse = Mouse.GetState();
-  var mousePos = new Vector2(mouse.X, mouse.Y);
+  var mouseState = Mouse.GetState();
 
-  _hoveredCell = _grid.ScreenToGrid(mousePos, _camera.Transform);
+  var commands = _inputReader.Produce(
+    Keyboard.GetState(), 
+    mouseState,
+    _camera.Zoom,
+    (float)gameTime.ElapsedGameTime.TotalSeconds
+  );
+  _cameraController.Apply(commands);
+
+  _hoveredCell = _grid.ScreenToGrid(new Vector2(mouseState.X, mouseState.Y), _camera.Transform);
 
   base.Update(gameTime);
 }
 
   protected override void Draw(GameTime gameTime)
   {
+    if (_camera is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_camera)} is null");
     if (_spriteBatch is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_spriteBatch)} is null");
     if (_grid is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_grid)} is null");
 
     GraphicsDevice.Clear(Color.CornflowerBlue);
 
-    _spriteBatch.Begin();
+    _spriteBatch.Begin(transformMatrix: _camera.Transform);
     {
       DrawGrid(_spriteBatch, _grid);
       DrawHoveredCell(_spriteBatch, _grid);
