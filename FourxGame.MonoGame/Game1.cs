@@ -1,4 +1,5 @@
 ﻿using System;
+using FourxGame.MonoGame.Core.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -7,14 +8,13 @@ namespace FourxGame.MonoGame;
 
 public class Game1 : Game
 {
+  private Grid? _grid;
+  private Camera? _camera;
   private Texture2D? _pixel;
-  private readonly int _gridCellSize = 48;
-  private readonly Point _gridSize = new() { X = 32, Y = 16 };
-  private readonly Point _gridOrigin = new() { X = 0, Y = 0 };
   private Point? _hoveredCell = Point.Zero;
 
   private GraphicsDeviceManager _graphics;
-  private SpriteBatch _spriteBatch;
+  private SpriteBatch? _spriteBatch;
 
   public Game1()
   {
@@ -31,7 +31,15 @@ public class Game1 : Game
   protected override void Initialize()
   {
     // TODO: Add your initialization logic here
+    _grid = new Grid
+    {
+      GridCellSize = 48,
+      GridSizeX = 32,
+      GridSizeY = 16,
+      Origin = Vector2.Zero
+    };
 
+    _camera = new Camera();
     base.Initialize();
   }
 
@@ -41,87 +49,71 @@ public class Game1 : Game
 
     _pixel = new Texture2D(GraphicsDevice, 1, 1);
     _pixel.SetData([Color.White]);
-
-    // TODO: use this.Content to load your game content here
   }
 
 protected override void Update(GameTime gameTime)
 {
-    var mouse = Mouse.GetState();
-    var localX = mouse.X - _gridOrigin.X;
-    var localY = mouse.Y - _gridOrigin.Y;
+  if (_camera is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_camera)} is null");
+  if (_grid is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_grid)} is null");
 
-    if (
-         (localX > _gridOrigin.X && localX < _gridOrigin.X + (_gridSize.X * _gridCellSize))
-      && (localY > _gridOrigin.Y && localY < _gridOrigin.Y + (_gridSize.Y * _gridCellSize))
-    )
-    {
-      _hoveredCell = new (localX / _gridCellSize, localY / _gridCellSize);
-    }
-    else
-    {
-      _hoveredCell = null;
-    }
+  var mouse = Mouse.GetState();
+  var mousePos = new Vector2(mouse.X, mouse.Y);
 
-    // bounds check, then compute:
-    // column = localX / CellSize
-    // row = localY / CellSize
+  _hoveredCell = _grid.ScreenToGrid(mousePos, _camera.Transform);
 
-    base.Update(gameTime);
+  base.Update(gameTime);
 }
 
   protected override void Draw(GameTime gameTime)
   {
+    if (_spriteBatch is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_spriteBatch)} is null");
+    if (_grid is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_grid)} is null");
+
     GraphicsDevice.Clear(Color.CornflowerBlue);
 
     _spriteBatch.Begin();
     {
-      DrawGrid();
-
-      if (_hoveredCell is not null)
-      {
-        var cellTopLeft = _gridOrigin + (_hoveredCell * _gridCellSize);
-        if (cellTopLeft is not null)
-        {          
-          _spriteBatch.Draw(
-            _pixel,
-            new Rectangle(
-              cellTopLeft.Value, 
-              new (_gridCellSize)
-            ),
-            Color.Red
-          );
-        }
-      }
+      DrawGrid(_spriteBatch, _grid);
+      DrawHoveredCell(_spriteBatch, _grid);
     }
     _spriteBatch.End();
-
-    // TODO: Add your drawing code here
 
     base.Draw(gameTime);
   }
 
-  private void DrawGrid()
-  {
-    for (var x = 0; x <= _gridSize.X; x++)
+  private void DrawHoveredCell(SpriteBatch spriteBatch, Grid grid)
+  {    
+    if (_hoveredCell is Point p)
     {
-      _spriteBatch.Draw(
+      spriteBatch.Draw(
+        _pixel,
+        grid.GridToWorldRect(p),
+        Color.Red
+      );
+    }
+  }
+
+  private void DrawGrid(SpriteBatch spriteBatch, Grid grid)
+  {
+    for (var x = 0; x <= grid.GridSizeX; x++)
+    {
+      spriteBatch.Draw(
         _pixel,
         new Rectangle(
-          new(_gridOrigin.X + (x * _gridCellSize), 0),
-          new(1, _gridSize.Y * _gridCellSize)
+          new((int)Math.Floor(grid.Origin.X + (x * grid.GridCellSize)), 0),
+          new(1, grid.GridSizeY * grid.GridCellSize)
         ),
         Color.White
       );
     }
 
-    for (var y = 0; y <= _gridSize.Y; y++)
+    for (var y = 0; y <= grid.GridSizeY; y++)
     {
-      _spriteBatch.Draw(
+      spriteBatch.Draw(
         _pixel,
         new Rectangle(
-          new(0, _gridOrigin.Y + (y * _gridCellSize)),
-          new(_gridSize.X * _gridCellSize, 1)
+          new(0, (int)Math.Floor(grid.Origin.Y + (y * grid.GridCellSize))),
+          new(grid.GridSizeX * grid.GridCellSize, 1)
         ),
         Color.White
       );
