@@ -9,6 +9,7 @@ namespace FourxGame.MonoGame.Core.Systems.Input;
 public sealed class InputReader(InputBindings bindings)
 {
   private int _previousScroll;
+  private bool _wasPlaceButtonDown;
   private Point? _dragStartPosition;
   public IReadOnlyList<InputCommand> Produce(
     KeyboardState keyboard, MouseState mouse, float zoom, float dt
@@ -21,7 +22,25 @@ public sealed class InputReader(InputBindings bindings)
     HandleMouseDragPan(mouse, zoom, commands);
     HandleMouseWheelZoom(mouse, commands);
 
+    HandlePlaceSettlementClick(mouse, commands);
+
     return commands;
+  }
+
+  private void HandlePlaceSettlementClick(
+    MouseState mouseState,
+    List<InputCommand> commands
+  )
+  {
+    var isPlaceButtonDown = mouseState.LeftButton == ButtonState.Pressed;
+
+    if (isPlaceButtonDown && !_wasPlaceButtonDown)
+    {
+      commands.Add(
+        new PlaceSettlementAtScreenCommand(new Vector2(mouseState.X, mouseState.Y)));
+    }
+
+    _wasPlaceButtonDown = isPlaceButtonDown;
   }
 
   private void HandleMouseDragPan(MouseState mouse, float zoom, List<InputCommand> commands)

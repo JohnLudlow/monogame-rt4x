@@ -1,8 +1,9 @@
 ﻿using System;
 using FourxGame.MonoGame.Core.Commands.Input;
 using FourxGame.MonoGame.Core.Entities;
+using FourxGame.MonoGame.Core.Systems;
 using FourxGame.MonoGame.Core.Systems.Input;
-using FourxGame.MonoGame.Core.Utilities;
+using FourxGame.MonoGame.Core.Systems.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -13,15 +14,14 @@ public class Game1 : Game
 {
   private Grid? _grid;
   private Camera? _camera;
+  private SettlementPlacementSystem _settlements = null!;
+  private SettlementPlacementController _settlementPlacementController = null!;
+  private GraphicsDeviceManager _graphics;
   private Texture2D? _pixel;
   private InputReader _inputReader = null!;
   private CameraController _cameraController = null!;
-
   private Point? _hoveredCell = Point.Zero;
-  private float _panSpeed = 400f;
-  private int _previousScroll;
 
-  private GraphicsDeviceManager _graphics;
   private SpriteBatch? _spriteBatch;
 
   public Game1()
@@ -48,6 +48,10 @@ public class Game1 : Game
     };
 
     _camera = new Camera();
+
+    _settlements = new SettlementPlacementSystem(_grid);
+    _settlementPlacementController = new SettlementPlacementController(_grid, _camera, _settlements);
+
     _inputReader = new InputReader(new InputBindings());
     _cameraController = new CameraController(_camera);
 
@@ -77,6 +81,7 @@ protected override void Update(GameTime gameTime)
     (float)gameTime.ElapsedGameTime.TotalSeconds
   );
   _cameraController.Apply(commands);
+  _settlementPlacementController.Apply(commands);  
 
   _hoveredCell = _grid.ScreenToGrid(new Vector2(mouseState.X, mouseState.Y), _camera.Transform);
 
@@ -94,11 +99,28 @@ protected override void Update(GameTime gameTime)
     _spriteBatch.Begin(transformMatrix: _camera.Transform);
     {
       DrawGrid(_spriteBatch, _grid);
+      DrawSettlements(_spriteBatch, _grid);
       DrawHoveredCell(_spriteBatch, _grid);
     }
     _spriteBatch.End();
 
     base.Draw(gameTime);
+  }
+
+  private void DrawSettlements(SpriteBatch spriteBatch, Grid grid)
+  {
+    foreach (var settlement in _settlements.Settlements.Values)
+    {
+      var tile = grid.GridToWorldRect(settlement.Cell);
+      const int markerSize = 20;
+      var marker = new Rectangle(
+        tile.Center.X - markerSize / 2,
+        tile.Center.Y - markerSize / 2,
+        markerSize,
+        markerSize);
+
+      spriteBatch.Draw(_pixel, marker, Color.Gold);
+    }
   }
 
   private void DrawHoveredCell(SpriteBatch spriteBatch, Grid grid)
@@ -108,7 +130,7 @@ protected override void Update(GameTime gameTime)
       spriteBatch.Draw(
         _pixel,
         grid.GridToWorldRect(p),
-        Color.Red
+        Color.Red with { A = 10 }
       );
     }
   }
