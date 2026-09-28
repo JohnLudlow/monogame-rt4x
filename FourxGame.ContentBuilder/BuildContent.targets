@@ -4,7 +4,7 @@
       <ContentOutput>$([System.IO.Path]::TrimEndingDirectorySeparator('$(ProjectDir)$(OutputPath)'))</ContentOutput>
       <ContentTemp>$([System.IO.Path]::TrimEndingDirectorySeparator('$(ProjectDir)$(IntermediateOutputPath)'))</ContentTemp>
       <ContentArgs>build -p $(MonoGamePlatform) -s FourxGame.ContentBuilder/Assets -o &quot;$(ContentOutput)&quot; -i &quot;$(ContentTemp)&quot;</ContentArgs>
-      <ContentCommand>$(MSBuildThisFileDirectory)bin\Debug\FourxGame.ContentBuilder</ContentCommand>
+      <ContentCommand>$(MSBuildThisFileDirectory)bin\$(Configuration)\FourxGame.ContentBuilder</ContentCommand>
     </PropertyGroup>
     <MSBuild Projects="$(MSBuildThisFileDirectory)FourxGame.ContentBuilder.csproj" Targets="Build" RemoveProperties="Configuration;TargetFramework;RuntimeIdentifier;RuntimeIdentifiers" />
     <Exec Command="&quot;$(ContentCommand)&quot; $(ContentArgs)" WorkingDirectory="$(MSBuildThisFileDirectory)..\" CustomErrorRegularExpression="\[E\] .+" CustomWarningRegularExpression="\[W\] .+" />
