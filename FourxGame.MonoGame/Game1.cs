@@ -4,6 +4,7 @@ using FourxGame.MonoGame.Core.Entities;
 using FourxGame.MonoGame.Core.Systems;
 using FourxGame.MonoGame.Core.Systems.Input;
 using FourxGame.MonoGame.Core.Systems.World;
+using FourxGame.MonoGame.Systems.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -13,6 +14,8 @@ namespace FourxGame.MonoGame;
 public class Game1 : Game
 {
   private Grid? _grid;
+  private TerrainData _terrainData = null!;
+  private TerrainRepresentation _terrainRepresentation = null!;
   private Camera? _camera;
   private SettlementPlacementSystem _settlements = null!;
   private SettlementPlacementController _settlementPlacementController = null!;
@@ -54,6 +57,10 @@ public class Game1 : Game
 
     _inputReader = new InputReader(new InputBindings());
     _cameraController = new CameraController(_camera);
+    
+    var tg = new TerrainGenerator(_grid, 123);
+    _terrainData = tg.GenerateTerrain();
+    _terrainRepresentation = new TerrainRepresentation();
 
     base.Initialize();
   }
@@ -93,11 +100,14 @@ protected override void Update(GameTime gameTime)
     if (_camera is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_camera)} is null");
     if (_spriteBatch is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_spriteBatch)} is null");
     if (_grid is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_grid)} is null");
+    if (_pixel is null) throw new InvalidOperationException($"Cannot call {nameof(Draw)} when {nameof(_pixel)} is null");
 
     GraphicsDevice.Clear(Color.CornflowerBlue);
 
     _spriteBatch.Begin(transformMatrix: _camera.Transform);
     {
+      _terrainRepresentation.DrawTerrain(_grid, _terrainData, _spriteBatch, _pixel);
+      
       DrawGrid(_spriteBatch, _grid);
       DrawSettlements(_spriteBatch, _grid);
       DrawHoveredCell(_spriteBatch, _grid);
