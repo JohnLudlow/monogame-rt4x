@@ -1,6 +1,3 @@
-﻿# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: Build and Test
 
 on:
@@ -20,13 +17,13 @@ jobs:
       actions: write
       artifact-metadata: write
       checks: write
-      contents: write
-      pull-requests: write
+      contents: write 
+      pull-requests: write      
     outputs:
       assemblySemVer: ${{ steps.setup.outputs.assemblySemVer }}
       GitVersion_FullSemVer: ${{ steps.setup.outputs.GitVersion_FullSemVer }}
       semVer: ${{ steps.setup.outputs.semVer }}
-
+      
     steps:
     - uses: actions/checkout@v5
       with:
@@ -48,27 +45,27 @@ jobs:
       with:
         version: ${{ steps.setup.outputs.GitVersion_FullSemVer }}
 
-  # unit-test:
-  #   needs: build
-  #   runs-on: windows-latest
-  #   env:
-  #     CONFIGURATION: Release
-  #   permissions:
-  #     contents: read
-  #     issues: write
+  unit-test:
+    needs: build
+    runs-on: windows-latest
+    env:
+      CONFIGURATION: Release
+    permissions:
+      contents: read
+      issues: write
 
-  #   steps:
-  #   - uses: actions/checkout@v5
-  #     with:
-  #       lfs: true
-  #       fetch-depth: 0
-  #       submodules: recursive
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        lfs: true
+        fetch-depth: 0
+        submodules: recursive
 
-  #   - uses: ./actions/steps/setup
-  #   - uses: ./actions/steps/dotnet/test
-  #     with:
-  #       assembly-semver: ${{ needs.build.outputs.assemblySemVer }}
-  #       gitversion-full-semver: ${{ needs.build.outputs.GitVersion_FullSemVer }}
+    - uses: ./actions/steps/setup
+    - uses: ./actions/steps/dotnet/test
+      with:
+        assembly-semver: ${{ needs.build.outputs.assemblySemVer }}
+        gitversion-full-semver: ${{ needs.build.outputs.GitVersion_FullSemVer }}
 
   benchmark:
     needs: build
@@ -91,7 +88,7 @@ jobs:
     # - uses: ./actions/steps/benchmark
     #   with:
     #     configuration: ${{ env.CONFIGURATION }}
-    #     project: src/GameEngineAdapter.Benchmarks/GameEngineAdapter.Benchmarks.csproj
+    #     project: <PATH>
     #     job: short
     #     exporters: GitHub
     #     filter: "*"
@@ -104,27 +101,27 @@ jobs:
         lfs: true
         fetch-depth: 0
         submodules: recursive
-
+        
 
     # - uses: ./actions/steps/dotnet/format
     - uses: ./actions/steps/rumdl
 
-  # codeql:
-  #   env:
-  #     CONFIGURATION: Release
-  #   runs-on: windows-latest
-  #   permissions:
-  #     actions: read
-  #     contents: read
-  #     security-events: write
-  #   steps:
-  #   - uses: actions/checkout@v5
-  #     with:
-  #       lfs: true
-  #       fetch-depth: 0
-  #       submodules: recursive
+  codeql:
+    env:
+      CONFIGURATION: Release
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        lfs: true
+        fetch-depth: 0
+        submodules: recursive
 
-  #   - uses: ./actions/steps/codeql
+    - uses: ./actions/steps/codeql
 
   pr-size:
     if: github.event_name == 'pull_request'
