@@ -35,11 +35,16 @@ dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_property = false:suggestion
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 
-dotnet_diagnostic.CA2213.severity = warning
 dotnet_diagnostic.CA1303.severity = silent
-dotnet_diagnostic.CA1805.severity = silent
-dotnet_diagnostic.CA5394.severity = none
 dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1515.severity = suggestion
+dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.CA1805.severity = silent
+dotnet_diagnostic.CA2213.severity = warning
+dotnet_diagnostic.CA5394.severity = none
+
+# TODO: RESOLVE
+dotnet_diagnostic.CA2213.severity = suggestion
 
 # ReSharper properties
 resharper_autodetect_indent_settings = true

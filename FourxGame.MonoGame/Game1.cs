@@ -4,7 +4,6 @@ using FourxGame.MonoGame.Core.Entities;
 using FourxGame.MonoGame.Core.Systems;
 using FourxGame.MonoGame.Core.Systems.Input;
 using FourxGame.MonoGame.Core.Systems.World;
-using FourxGame.MonoGame.Systems.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -57,9 +56,14 @@ public class Game1 : Game
 
     _inputReader = new InputReader(new InputBindings());
     _cameraController = new CameraController(_camera);
-    
-    var tg = new TerrainGenerator(_grid, 123);
-    _terrainData = tg.GenerateTerrain();
+
+    var tg = new TerrainGenerator(_grid, 564);
+    var tr = tg.GenerateTerrain();
+    if (tr is TerrainGridGenerationSuccess success)
+    {
+      _terrainData = success.TerrainData;
+    }
+
     _terrainRepresentation = new TerrainRepresentation();
 
     base.Initialize();
@@ -73,27 +77,27 @@ public class Game1 : Game
     _pixel.SetData([Color.White]);
   }
 
-protected override void Update(GameTime gameTime)
-{
-  ArgumentNullException.ThrowIfNull(gameTime);
-  if (_camera is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_camera)} is null");
-  if (_grid is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_grid)} is null");
+  protected override void Update(GameTime gameTime)
+  {
+    ArgumentNullException.ThrowIfNull(gameTime);
+    if (_camera is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_camera)} is null");
+    if (_grid is null) throw new InvalidOperationException($"Cannot call {nameof(Update)} when {nameof(_grid)} is null");
 
-  var mouseState = Mouse.GetState();
+    var mouseState = Mouse.GetState();
 
-  var commands = _inputReader.Produce(
-    Keyboard.GetState(), 
-    mouseState,
-    _camera.Zoom,
-    (float)gameTime.ElapsedGameTime.TotalSeconds
-  );
-  _cameraController.Apply(commands);
-  _settlementPlacementController.Apply(commands);  
+    var commands = _inputReader.Produce(
+      Keyboard.GetState(),
+      mouseState,
+      _camera.Zoom,
+      (float)gameTime.ElapsedGameTime.TotalSeconds
+    );
+    _cameraController.Apply(commands);
+    _settlementPlacementController.Apply(commands);
 
-  _hoveredCell = _grid.ScreenToGrid(new Vector2(mouseState.X, mouseState.Y), _camera.Transform);
+    _hoveredCell = _grid.ScreenToGrid(new Vector2(mouseState.X, mouseState.Y), _camera.Transform);
 
-  base.Update(gameTime);
-}
+    base.Update(gameTime);
+  }
 
   protected override void Draw(GameTime gameTime)
   {
@@ -107,7 +111,7 @@ protected override void Update(GameTime gameTime)
     _spriteBatch.Begin(transformMatrix: _camera.Transform);
     {
       _terrainRepresentation.DrawTerrain(_grid, _terrainData, _spriteBatch, _pixel);
-      
+
       DrawGrid(_spriteBatch, _grid);
       DrawSettlements(_spriteBatch, _grid);
       DrawHoveredCell(_spriteBatch, _grid);
@@ -134,7 +138,7 @@ protected override void Update(GameTime gameTime)
   }
 
   private void DrawHoveredCell(SpriteBatch spriteBatch, Grid grid)
-  {    
+  {
     if (_hoveredCell is Point p)
     {
       spriteBatch.Draw(

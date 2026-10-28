@@ -1,5 +1,5 @@
 ﻿/// <summary>
-/// Entry point for the Content Builder project, 
+/// Entry point for the Content Builder project,
 /// which when executed will build content according to the "Content Collection Strategy" defined in the Builder class.
 /// </summary>
 /// <remarks>
@@ -12,53 +12,53 @@ using MonoGame.Framework.Content.Pipeline.Builder;
 
 var contentCollectionArgs = new ContentBuilderParams()
 {
-    Mode = ContentBuilderMode.Builder,
-    WorkingDirectory = $"{AppContext.BaseDirectory}../../", // path to where your content folder can be located
-    SourceDirectory = "Assets", // Not actually needed as this is the default, but added for reference
-    Platform = TargetPlatform.DesktopGL
+  Mode = ContentBuilderMode.Builder,
+  WorkingDirectory = $"{AppContext.BaseDirectory}../../", // path to where your content folder can be located
+  SourceDirectory = "Assets", // Not actually needed as this is the default, but added for reference
+  Platform = TargetPlatform.DesktopGL
 };
 var builder = new Builder();
 
 if (args is not null && args.Length > 0)
 {
-    builder.Run(args);
+  builder.Run(args);
 }
 else
 {
-    builder.Run(contentCollectionArgs);
+  builder.Run(contentCollectionArgs);
 }
 
 return builder.FailedToBuild > 0 ? -1 : 0;
 
-public class Builder : ContentBuilder
+internal sealed class Builder : ContentBuilder
 {
-    public override IContentCollection GetContentCollection()
-    {
-        var contentCollection = new ContentCollection();
+  public override IContentCollection GetContentCollection()
+  {
+    var contentCollection = new ContentCollection();
 
-        // By default, no content will be imported from the Assets folder using the default importer for their file type.
-        // Please define your content collection rules here.
+    // By default, no content will be imported from the Assets folder using the default importer for their file type.
+    // Please define your content collection rules here.
 
-        /* Examples
+    /* Examples
 
-        // Import all content in the Assets folder using the default importer for their file type.
-        contentCollection.Include<WildcardRule>("*");
+    // Import all content in the Assets folder using the default importer for their file type.
+    contentCollection.Include<WildcardRule>("*");
 
-        // Only copy content from the assets folder rather than build it with the pipeline.
-        contentCollection.IncludeCopy<WildcardRule>("*.json");
+    // Only copy content from the assets folder rather than build it with the pipeline.
+    contentCollection.IncludeCopy<WildcardRule>("*.json");
 
-        // Exclude assets that match the pattern., only required overriding a default import behaviour.
-        contentCollection.Exclude<WildcardRule>("Font/*.txt");
+    // Exclude assets that match the pattern., only required overriding a default import behaviour.
+    contentCollection.Exclude<WildcardRule>("Font/*.txt");
 
-        // Include a specific asset with processor parameters.
-        contentCollection.Include("Models/character.glb", new FbxImporter(),
-            new MeshAnimatedModelProcessor()
-            {
-                Scale = 100.0f
-            }
-        );
-        */
+    // Include a specific asset with processor parameters.
+    contentCollection.Include("Models/character.glb", new FbxImporter(),
+        new MeshAnimatedModelProcessor()
+        {
+            Scale = 100.0f
+        }
+    );
+    */
 
-        return contentCollection;
-    }
+    return contentCollection;
+  }
 }
